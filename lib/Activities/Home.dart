@@ -21,50 +21,10 @@ class HomeState extends State {
   FirebaseAuthentication _firebaseAuthentication = new FirebaseAuthentication();
   Completer<GoogleMapController> _mapController = Completer();
 
-  static LatLng _initialPosition = LatLng(0.0, 0.0);
+  late LatLng _initialPosition;
   final Set<Marker> _markers = {};
-  static  LatLng _lastMapPosition = _initialPosition;
-
-  var currentLocation;
-
-
-  @override
-  void initState() {
-    super.initState();
-    _getUserLocation();
-  }
-
-  void _getUserLocation() async {
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    // List<Placemark> placemark = await Geolocator().placemarkFromCoordinates(position.latitude, position.longitude);
-    setState(() {
-      _initialPosition = LatLng(position.latitude, position.longitude);
-      // print('${placemark[0].name}');
-    });
-  }
-
-  _onMapCreated(GoogleMapController controller) {
-    setState(() {
-      _mapController.complete(controller);
-    });
-  }
   MapType _currentMapType = MapType.normal;
-
-  _onCameraMove(CameraPosition position) {
-    _lastMapPosition = position.target;
-  }
-
-  _mapMarker() {
-    setState(() {
-      _markers.add(
-          Marker(
-              markerId: MarkerId(_lastMapPosition.toString()),
-              position: _lastMapPosition,
-              infoWindow: InfoWindow(),
-              onTap: (){},
-              icon: BitmapDescriptor.defaultMarker));
-    });
-  }
+  var currentLocation;
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +63,7 @@ class HomeState extends State {
               onCameraMove: _onCameraMove,
               myLocationEnabled: true,
               compassEnabled: true,
-              myLocationButtonEnabled: false,
+              myLocationButtonEnabled: true,
 
             ),
             Align(
@@ -175,5 +135,40 @@ class HomeState extends State {
                   MediaQuery.of(context).size.width / 2,
                   EdgeInsets.only(top: 0.0, bottom: 0.0)));
         });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  void _getUserLocation() async {
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _initialPosition = LatLng(position.latitude, position.longitude);
+    });
+  }
+
+  _onMapCreated(GoogleMapController controller) {
+    setState(() {
+      _mapController.complete(controller);
+      _mapMarker();
+    });
+  }
+
+  _onCameraMove(CameraPosition position) {
+    _initialPosition = position.target;
+  }
+
+  _mapMarker() {
+    setState(() {
+      _markers.add(
+          Marker(
+              markerId: MarkerId(_initialPosition.toString()),
+              position: _initialPosition,
+              draggable: true,
+              icon: BitmapDescriptor.defaultMarker));
+    });
   }
 }
