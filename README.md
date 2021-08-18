@@ -1,6 +1,6 @@
 # careen
 
-A new Flutter project.
+PNY IT Trainings Flutter Course Project by Zakwan Ali Tariq 
 
 ## Getting Started
 
