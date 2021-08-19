@@ -7,6 +7,7 @@ import 'Login.dart';
 
 class Splash extends StatelessWidget{
   AppCustomComponents _customComponents=new AppCustomComponents();
+
   @override
   Widget build(BuildContext context) {
     return AnimatedSplashScreen(

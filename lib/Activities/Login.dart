@@ -2,9 +2,10 @@ import 'package:careen/Activities/Home.dart';
 import 'package:careen/Activities/Register.dart';
 import 'package:careen/Utils/AppCustomComponents.dart';
 import 'package:careen/Utils/FirebaseAuthentication.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -17,35 +18,10 @@ class LoginState extends State {
   AppCustomComponents _customComponents = new AppCustomComponents();
   TextEditingController _emailController = new TextEditingController();
   TextEditingController _passController = new TextEditingController();
-
   FirebaseAuthentication _firebaseAuthentication = new FirebaseAuthentication();
+  LatLng _userLocation = LatLng(33, 73);
 
-  checkAuth() async{
-    bool auth = await _firebaseAuthentication.checkAuth();
-    if(auth){
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => Home()));
-    }
-  }
 
-  authenticate(String email, String password) {
-    Future message() async {
-      String message = await _firebaseAuthentication.signIn(email, password);
-      if (message == "SignedIn") {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => Home()));
-      }
-      else if (message == "NoUser") {
-        final snackBar = SnackBar(content: Text('Incorrect Email!'));
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-      else if (message == "IncorrectPassword") {
-        final snackBar = SnackBar(content: Text('Incorrect Password!'));
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-    }
-    message();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +32,6 @@ class LoginState extends State {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Padding(padding: EdgeInsets.only(top: 40.0)),
               _customComponents.cTitleText("Careen", 30.0, Colors.black87),
               _customComponents.cCard(Column(
                 children: [
@@ -101,7 +76,7 @@ class LoginState extends State {
                       ),
                       Spacer(),
                       ElevatedButton(
-                          onPressed: authenticate(_emailController.text.trim(), _passController.text),
+                          onPressed: () => authenticate(_emailController.text.trim(), _passController.text),
                           child: Icon(
                             Icons.arrow_forward,
                             color: Colors.white,
@@ -117,6 +92,34 @@ class LoginState extends State {
         ));
   }
 
+  checkAuth() async{
+    bool auth = await _firebaseAuthentication.checkAuth();
+    if(auth){
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => Home(_userLocation)));
+    }
+  }
+
+  Future<ScaffoldFeatureController> authenticate(String email, String password) async {
+    String message = await _firebaseAuthentication.signIn(email, password);
+    if (message == "SignedIn") {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => Home(_userLocation)));
+      final snackBar = SnackBar(content: Text('Welcome!'));
+      return ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+    else {
+      final snackBar = SnackBar(content: Text('Incorrect Email or Password!'));
+      return ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  Future<void> _getUserLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    _userLocation = LatLng(position.latitude, position.longitude);
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -127,6 +130,7 @@ class LoginState extends State {
   @override
   void initState() {
     super.initState();
+    _getUserLocation();
     checkAuth();
   }
 }
