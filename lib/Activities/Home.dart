@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:careen/Activities/Splash.dart';
+import 'package:careen/DataModels/Rides.dart';
 import 'package:careen/Utils/AppCustomComponents.dart';
 import 'package:careen/Utils/FirebaseAuthentication.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
@@ -10,27 +12,38 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Home extends StatefulWidget {
   LatLng _userLocation = LatLng(33, 73);
-  Home(LatLng _userLocation) {
+  var _userId;
+  Home(LatLng _userLocation, var _userId) {
     this._userLocation=_userLocation;
+    this._userId=_userId;
   }
   @override
   State<StatefulWidget> createState() {
-    return HomeState(_userLocation);
+    return HomeState(_userLocation, _userId);
   }
 }
 
 class HomeState extends State {
+
+  HomeState(LatLng _userLocation, var _userId) {
+    this._userLocation=_userLocation;
+    this._userId=_userId;
+  }
+
   AppCustomComponents _customComponents = new AppCustomComponents();
   FirebaseAuthentication _firebaseAuthentication = new FirebaseAuthentication();
   Completer<GoogleMapController> _mapController = Completer();
   LatLng _userLocation = LatLng(33, 73);
   LatLng _pickupLocation = LatLng(33, 73);
   MapType _currentMapType = MapType.normal;
-  var currentLocation;
+  late StreamSubscription<Event> _onAvailabeRidesAddedSubsciption;
+  late StreamSubscription<Event> _onAvailabeRidesChangedSubsciption;
+  var _currentLocation;
+  var _userId;
 
-  HomeState(LatLng _userLocation) {
-    this._userLocation=_userLocation;
-  }
+  final DBRef =FirebaseDatabase.instance.reference();
+
+  List<Rides> _ridesAvailable = [];
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +188,8 @@ class HomeState extends State {
     });
   }
 
-  _confirmPickup(){
+  _confirmPickup() async{
+    _requestRide();
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -202,9 +216,43 @@ class HomeState extends State {
         });
   }
 
+  _availableRides(){
+    var getRefQuery = DBRef.child("Ride_Requests");
+    getRefQuery.onChildAdded.listen(onRideAdded);
+    getRefQuery.onChildChanged.listen(onRideChanged);
+  }
+
+  void _requestRide(){
+    DBRef.child("Available_Rides").child(_userId.toString()).set({
+      "User_ID" : _userId.toString(),
+      "Latitude" : _pickupLocation.latitude.toString(),
+      "Longitude" : _pickupLocation.longitude.toString()
+    });
+  }
+
+  void onRideAdded(Event event) {
+    setState(() {
+      _ridesAvailable.add(Rides.fromSnapshot(event.snapshot));
+      print(_ridesAvailable[0].lat);
+    });
+  }
+
+  void onRideChanged(Event event) {
+    var oldEntry = _ridesAvailable.singleWhere((entry) {
+      return entry.userId == event.snapshot.key;
+    });
+
+    setState(() {
+      _ridesAvailable[_ridesAvailable.indexOf(oldEntry)] =
+          Rides.fromSnapshot(event.snapshot);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _pickupLocation = _userLocation;
+    _availableRides();
   }
+
 }

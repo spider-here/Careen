@@ -20,8 +20,7 @@ class LoginState extends State {
   TextEditingController _passController = new TextEditingController();
   FirebaseAuthentication _firebaseAuthentication = new FirebaseAuthentication();
   LatLng _userLocation = LatLng(33, 73);
-
-
+  var userID;
 
   @override
   Widget build(BuildContext context) {
@@ -33,82 +32,90 @@ class LoginState extends State {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _customComponents.cTitleText("Careen", 30.0, Colors.black87),
-              _customComponents.cCard(Column(
-                children: [
-                  _customComponents.cHeaderText("Log In"),
-                  _customComponents.cTextField(
-                    "Enter Email",
-                    _emailController,
-                    false,
-                    Icon(
-                      Icons.alternate_email_outlined,
-                      color: Colors.black87,
-                      size: 20.0,
-                    ),
-                    TextInputType.text,),
-                  _customComponents.cTextField(
-                    "Enter Password",
-                    _passController,
-                    true,
-                    Icon(
-                      Icons.password_outlined,
-                      color: Colors.black87,
-                      size: 20.0,
-                    ),
-                    TextInputType.text,
-                  ),
-                  Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              _customComponents.cCard(
+                  Column(
                     children: [
-                      InkWell(
-                        child: Text(
-                          "Create Account",
-                          style: TextStyle(
-                              color: Colors.blue, fontSize: 12.0),
+                      _customComponents.cHeaderText("Log In"),
+                      _customComponents.cTextField(
+                        "Enter Email",
+                        _emailController,
+                        false,
+                        Icon(
+                          Icons.alternate_email_outlined,
+                          color: Colors.black87,
+                          size: 20.0,
                         ),
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => Register()));
-                        },
+                        TextInputType.text,
+                      ),
+                      _customComponents.cTextField(
+                        "Enter Password",
+                        _passController,
+                        true,
+                        Icon(
+                          Icons.password_outlined,
+                          color: Colors.black87,
+                          size: 20.0,
+                        ),
+                        TextInputType.text,
                       ),
                       Spacer(),
-                      ElevatedButton(
-                          onPressed: () => authenticate(_emailController.text.trim(), _passController.text),
-                          child: Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                          ))
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          InkWell(
+                            child: Text(
+                              "Create Account",
+                              style:
+                                  TextStyle(color: Colors.blue, fontSize: 12.0),
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => Register()));
+                            },
+                          ),
+                          Spacer(),
+                          ElevatedButton(
+                              onPressed: () => authenticate(
+                                  _emailController.text.trim(),
+                                  _passController.text),
+                              child: Icon(
+                                Icons.arrow_forward,
+                                color: Colors.white,
+                              ))
+                        ],
+                      )
                     ],
-                  )
-                ],
-              ),
-                  MediaQuery.of(context).size.height/2.5,
-                  MediaQuery.of(context).size.width/1.2, EdgeInsets.only(top: 20.0, bottom: 10.0)),
+                  ),
+                  MediaQuery.of(context).size.height / 2.5,
+                  MediaQuery.of(context).size.width / 1.2,
+                  EdgeInsets.only(top: 20.0, bottom: 10.0)),
             ],
           ),
         ));
   }
 
-  checkAuth() async{
+  checkAuth() async {
     bool auth = await _firebaseAuthentication.checkAuth();
-    if(auth){
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => Home(_userLocation)));
+    if (auth) {
+      userID =await _firebaseAuthentication.getCurrentUID();
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Home(_userLocation, userID)));
     }
   }
 
-  Future<ScaffoldFeatureController> authenticate(String email, String password) async {
+  Future<ScaffoldFeatureController> authenticate(
+      String email, String password) async {
     String message = await _firebaseAuthentication.signIn(email, password);
     if (message == "SignedIn") {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => Home(_userLocation)));
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => Home(_userLocation, userID)));
       final snackBar = SnackBar(content: Text('Welcome!'));
       return ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
-    else {
+    } else {
       final snackBar = SnackBar(content: Text('Incorrect Email or Password!'));
       return ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }

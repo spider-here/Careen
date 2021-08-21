@@ -2,10 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class FirebaseAuthentication{
   FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  var user;
+
+  Future<String> getCurrentUID() async {
+    User user = FirebaseAuth.instance.currentUser!;
+    return user.uid;
+  }
 
   Future<bool>checkAuth() async{
     try {
-      var user = _firebaseAuth.currentUser;
+      user = _firebaseAuth.currentUser;
       if (user != null) {
         print("Signed In");
         return true;
