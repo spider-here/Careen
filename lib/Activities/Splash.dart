@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 import 'Login.dart';
 
-class Splash extends StatelessWidget{
-  AppCustomComponents _customComponents=new AppCustomComponents();
+class Splash extends StatelessWidget {
+  AppCustomComponents _customComponents = new AppCustomComponents();
 
   @override
   Widget build(BuildContext context) {
@@ -20,4 +20,3 @@ class Splash extends StatelessWidget{
     );
   }
 }
-

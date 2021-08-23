@@ -1,9 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class AppCustomComponents {
   //TitleText
-  Widget cTitleText(String titleText, double fontSize, Color color,) {
+  Widget cTitleText(
+    String titleText,
+    double fontSize,
+    Color color,
+  ) {
     return Text(
       titleText,
       style: TextStyle(

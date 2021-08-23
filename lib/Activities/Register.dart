@@ -63,7 +63,7 @@ class RegisterState extends State {
                       ),
                     ],
                   ),
-                  MediaQuery.of(context).size.height / 2.5,
+                  MediaQuery.of(context).size.height / 2.4,
                   MediaQuery.of(context).size.width / 1.2, EdgeInsets.only(top: 20.0, bottom: 10.0)),
             ],
           ),
@@ -104,7 +104,7 @@ class RegisterState extends State {
                             ),
                           ],
                         ),
-                        MediaQuery.of(context).size.height / 4,
+                        MediaQuery.of(context).size.height / 3.8,
                         MediaQuery.of(context).size.width / 1.2, EdgeInsets.only(top: 0.0, bottom: 0.0)));
               });
         }

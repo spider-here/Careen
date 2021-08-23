@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:careen/Activities/Home.dart';
 import 'package:careen/Activities/Register.dart';
 import 'package:careen/Utils/AppCustomComponents.dart';
@@ -6,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -68,13 +71,7 @@ class LoginState extends State {
                               style:
                                   TextStyle(color: Colors.blue, fontSize: 12.0),
                             ),
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => Register()));
-                            },
-                          ),
+                            onTap: () { _createAccount(); }),
                           Spacer(),
                           ElevatedButton(
                               onPressed: () => authenticate(
@@ -96,7 +93,14 @@ class LoginState extends State {
         ));
   }
 
-  checkAuth() async {
+  _createAccount(){
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+          builder: (context) => Register()));
+  }
+
+  _checkAuth() async {
     bool auth = await _firebaseAuthentication.checkAuth();
     if (auth) {
       userID =await _firebaseAuthentication.getCurrentUID();
@@ -109,17 +113,17 @@ class LoginState extends State {
 
   Future<ScaffoldFeatureController> authenticate(
       String email, String password) async {
-    String message = await _firebaseAuthentication.signIn(email, password);
-    if (message == "SignedIn") {
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => Home(_userLocation, userID)));
-      final snackBar = SnackBar(content: Text('Welcome!'));
-      return ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    } else {
-      final snackBar = SnackBar(content: Text('Incorrect Email or Password!'));
-      return ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      String message = await _firebaseAuthentication.signIn(email, password);
+      if (message == "SignedIn") {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => Home(_userLocation, userID)));
+        final snackBar = SnackBar(content: Text('Welcome!'));
+        return ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      } else {
+        final snackBar = SnackBar(content: Text('Incorrect Email or Password!'));
+        return ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
     }
-  }
 
   Future<void> _getUserLocation() async {
     Position position = await Geolocator.getCurrentPosition(
@@ -138,6 +142,6 @@ class LoginState extends State {
   void initState() {
     super.initState();
     _getUserLocation();
-    checkAuth();
+    _checkAuth();
   }
 }
